@@ -2,10 +2,9 @@ from http import HTTPStatus
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 
 from fast_zero.schemas import Message, UserDB, UserList, UserPublic, UserSchema
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
 
 app = FastAPI(title="Curso de FastAPI")
 
