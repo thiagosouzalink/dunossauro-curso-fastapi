@@ -42,6 +42,24 @@ def test_read_users(client):
     }
 
 
+def test_read_user_exercicio_03(client):
+    response = client.get("/users/1")
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        "id": 1,
+        "username": "alice",
+        "email": "alice@example.com",
+    }
+
+
+def test_invalid_param_read_user_exercicio_03(client):
+    response = client.get("/users/404")
+
+    response.status_code == HTTPStatus.NOT_FOUND
+    response.json() == {"detail": "User Not Found"}
+
+
 def test_update_user(client):
     response = client.put(
         "/users/1",
@@ -60,6 +78,20 @@ def test_update_user(client):
     }
 
 
+def test_invalid_param_update_user_exercicio_03(client):
+    response = client.put(
+        "/users/404",
+        json={
+            "username": "bob",
+            "email": "bob@example.com",
+            "password": "secret",
+        },
+    )
+
+    response.status_code == HTTPStatus.NOT_FOUND
+    response.json() == {"detail": "User Not Found"}
+
+
 def test_delete_user(client):
     response = client.delete("/users/1")
     assert response.status_code == HTTPStatus.OK
@@ -68,3 +100,10 @@ def test_delete_user(client):
         "email": "bob@example.com",
         "id": 1,
     }
+
+
+def test_invalid_param_delete_user_exercicio_03(client):
+    response = client.delete("/users/404")
+
+    response.status_code == HTTPStatus.NOT_FOUND
+    response.json() == {"detail": "User Not Found"}
