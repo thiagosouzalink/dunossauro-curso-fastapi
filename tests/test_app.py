@@ -107,3 +107,9 @@ def test_invalid_param_delete_user_exercicio_03(client):
 
     response.status_code == HTTPStatus.NOT_FOUND
     response.json() == {"detail": "User Not Found"}
+
+
+def test_exercicio_02_ola_mundo_html(client):
+    response = client.get("/exercicio-02-ola-mundo-html")
+    assert response.status_code == HTTPStatus.OK
+    assert "<h1> Olá Mundo </h1>" in response.text

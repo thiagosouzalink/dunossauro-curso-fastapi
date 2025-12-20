@@ -1,12 +1,17 @@
 from http import HTTPStatus
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 
 from fast_zero.schemas import Message, UserDB, UserList, UserPublic, UserSchema
 
 app = FastAPI(title="Curso de FastAPI")
 
 database = []
+app = FastAPI()
+
+html_file = Path(__file__).parent / "templates/ola_mundo.html"
 
 
 @app.get("/", status_code=HTTPStatus.OK, response_model=Message)
@@ -59,3 +64,12 @@ def read_user(user_id: int):
             status_code=HTTPStatus.NOT_FOUND, detail="User Not Found"
         )
     return database[user_id - 1]
+
+
+@app.get(
+    "/exercicio-02-ola-mundo-html",
+    status_code=HTTPStatus.OK,
+    response_class=HTMLResponse,
+)
+def read_exercicio_02_ola_mundo_html():
+    return html_file.read_text(encoding="utf-8")
