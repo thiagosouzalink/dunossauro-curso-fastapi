@@ -29,7 +29,10 @@ def session():
 def _mock_db_time(*, model, time=datetime.now()):
     def fake_time_hook(mapper, connection, target):
         if hasattr(target, "created_at"):
-            target.created_at = time
+            if target.created_at is None:
+                target.created_at = time
+        if hasattr(target, "updated_at"):
+            target.updated_at = time
         print(target)
 
     event.listen(model, "before_insert", fake_time_hook)
