@@ -1,9 +1,12 @@
 from http import HTTPStatus
 
+from fastapi.testclient import TestClient
+
+from fast_zero.models import User
 from fast_zero.schemas import UserPublic
 
 
-def test_root_deve_retornar_ola_mundo(client):
+def test_root_deve_retornar_ola_mundo(client: TestClient):
     """
     Esse teste tem 3 etapas (AAA)
     - A: Arrange - Arranjo
@@ -18,7 +21,7 @@ def test_root_deve_retornar_ola_mundo(client):
     assert response.status_code == HTTPStatus.OK
 
 
-def teste_create_user(client):
+def teste_create_user(client: TestClient):
     response = client.post(
         "/users/",
         json={
@@ -35,14 +38,46 @@ def teste_create_user(client):
     }
 
 
-def test_read_users(client):
+def test_create_user_with_username_conflict_exercicio_05(
+    client: TestClient, user: User
+):
+    response = client.post(
+        "/users/",
+        json={
+            "username": user.username,
+            "email": "alice@example.com",
+            "password": "secret",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json() == {"detail": "Username already exists"}
+
+
+def test_create_user_with_email_conflict_exercicio_05(
+    client: TestClient, user: User
+):
+    response = client.post(
+        "/users/",
+        json={
+            "username": "alice",
+            "email": user.email,
+            "password": "secret",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json() == {"detail": "Email already exists"}
+
+
+def test_read_users(client: TestClient):
     response = client.get("/users/")
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {"users": []}
 
 
-def test_read_users_with_users(client, user):
+def test_read_users_with_users(client: TestClient, user: User):
     user_schema = UserPublic.model_validate(user).model_dump()
     response = client.get("/users/")
 
@@ -50,25 +85,24 @@ def test_read_users_with_users(client, user):
     assert response.json() == {"users": [user_schema]}
 
 
-# def test_read_user_exercicio_03(client):
-#     response = client.get("/users/1")
+def test_read_user_exercicio_03(client: TestClient, user: User):
+    response = client.get(f"/users/{user.id}")
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+    }
 
-#     assert response.status_code == HTTPStatus.OK
-#     assert response.json() == {
-#         "id": 1,
-#         "username": "alice",
-#         "email": "alice@example.com",
-#     }
 
-
-def test_invalid_param_read_user_exercicio_03(client):
+def test_invalid_param_read_user_exercicio_03(client: TestClient, user: User):
     response = client.get("/users/404")
 
     response.status_code == HTTPStatus.NOT_FOUND
     response.json() == {"detail": "User Not Found"}
 
 
-def test_update_user(client, user):
+def test_update_user(client: TestClient, user: User):
     response = client.put(
         "/users/1",
         json={
@@ -86,7 +120,7 @@ def test_update_user(client, user):
     }
 
 
-def test_update_integrity_error(client, user):
+def test_update_integrity_error(client: TestClient, user: User):
     client.post(
         "/users/",
         json={
@@ -109,7 +143,9 @@ def test_update_integrity_error(client, user):
     assert response.json() == {"detail": "Username or Email already exists"}
 
 
-def test_invalid_param_update_user_exercicio_03(client):
+def test_invalid_param_update_user_exercicio_03(
+    client: TestClient, user: User
+):
     response = client.put(
         "/users/404",
         json={
@@ -123,20 +159,22 @@ def test_invalid_param_update_user_exercicio_03(client):
     response.json() == {"detail": "User Not Found"}
 
 
-def test_delete_user(client, user):
+def test_delete_user(client: TestClient, user: User):
     response = client.delete("/users/1")
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {"message": "User deleted"}
 
 
-def test_invalid_param_delete_user_exercicio_03(client):
+def test_invalid_param_delete_user_exercicio_03(
+    client: TestClient, user: User
+):
     response = client.delete("/users/404")
 
     response.status_code == HTTPStatus.NOT_FOUND
     response.json() == {"detail": "User Not Found"}
 
 
-def test_exercicio_02_ola_mundo_html(client):
+def test_exercicio_02_ola_mundo_html(client: TestClient):
     response = client.get("/exercicio-02-ola-mundo-html")
     assert response.status_code == HTTPStatus.OK
     assert "<h1> Olá Mundo </h1>" in response.text
