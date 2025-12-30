@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 
 from fast_zero.models import User
 from fast_zero.schemas import UserPublic
+from fast_zero.security import create_access_token
 
 
 def test_root_deve_retornar_ola_mundo(client: TestClient):
@@ -80,8 +81,10 @@ def test_read_users(client: TestClient, user: User, token: str):
     assert response.json() == {"users": [user_schema]}
 
 
-def test_read_user_exercicio_03(client: TestClient, user: User):
-    response = client.get(f"/users/{user.id}")
+def test_read_user_exercicio_03(client: TestClient, user: User, token: str):
+    response = client.get(
+        f"/users/{user.id}", headers={"Authorization": f"Bearer {token}"}
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "id": user.id,
@@ -90,11 +93,14 @@ def test_read_user_exercicio_03(client: TestClient, user: User):
     }
 
 
-def test_invalid_param_read_user_exercicio_03(client: TestClient, user: User):
-    response = client.get("/users/404")
-
-    response.status_code == HTTPStatus.NOT_FOUND
-    response.json() == {"detail": "User Not Found"}
+def test_invalid_param_read_user_exercicio_03(
+    client: TestClient, user: User, token: str
+):
+    response = client.get(
+        "/users/404", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"detail": "User Not Found"}
 
 
 def test_update_user(client: TestClient, user: User, token: str):
@@ -140,22 +146,6 @@ def test_update_integrity_error(client: TestClient, user: User, token: str):
     assert response.json() == {"detail": "Username or Email already exists"}
 
 
-def test_invalid_param_update_user_exercicio_03(
-    client: TestClient, user: User
-):
-    response = client.put(
-        "/users/404",
-        json={
-            "username": "bob",
-            "email": "bob@example.com",
-            "password": "secret",
-        },
-    )
-
-    response.status_code == HTTPStatus.NOT_FOUND
-    response.json() == {"detail": "User Not Found"}
-
-
 def test_delete_user(client: TestClient, user: User, token: str):
     response = client.delete(
         f"/users/{user.id}",
@@ -163,15 +153,6 @@ def test_delete_user(client: TestClient, user: User, token: str):
     )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {"message": "User deleted"}
-
-
-def test_invalid_param_delete_user_exercicio_03(
-    client: TestClient, user: User
-):
-    response = client.delete("/users/404")
-
-    response.status_code == HTTPStatus.NOT_FOUND
-    response.json() == {"detail": "User Not Found"}
 
 
 def test_exercicio_02_ola_mundo_html(client: TestClient):
@@ -190,3 +171,27 @@ def test_get_token(client: TestClient, user: User):
     assert response.status_code == HTTPStatus.OK
     assert token["token_type"] == "Bearer"
     assert "access_token" in token
+
+
+def test_without_subject_get_current_user_exercicio_06(client: TestClient):
+    test_data = {"test": "test"}
+    token = create_access_token(data=test_data)
+    response = client.get(
+        "/users/",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {"detail": "Could not validate credentials"}
+
+
+def test_user_not_found_get_current_user_exercicio_06(client: TestClient):
+    test_data = {"sub": "test@test.com"}
+    token = create_access_token(data=test_data)
+    response = client.get(
+        "/users/",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {"detail": "Could not validate credentials"}
