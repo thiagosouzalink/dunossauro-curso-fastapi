@@ -125,7 +125,11 @@ def delete_user(
     status_code=HTTPStatus.OK,
     response_model=UserPublic,
 )
-def read_user(user_id: int, session: Session = Depends(get_session)):
+def read_user(
+    user_id: int,
+    session: Session = Depends(get_session),
+    current_user=Depends(get_current_user),
+):
     user = session.scalar(select(User).where(User.id == user_id))
 
     if not user:

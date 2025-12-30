@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
-from jwt import decode
 from fastapi.testclient import TestClient
+from jwt import decode
 
 from fast_zero.security import ALGORITHM, SECRET_KEY, create_access_token
 
